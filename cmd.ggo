@@ -5,8 +5,10 @@ purpose "入力された数値列の各種統計量を計算する"
 option "integer" i "数値を全て整数で扱います(デフォルトは実数)" flag off
 
 defgroup "type" groupdesc="どの統計量を求めるか" yes
-groupoption "sum"   - "string" group="type"
-groupoption "min"   - "string" group="type"
-groupoption "max"   - "string" group="type"
-groupoption "mean"  - "string" group="type"
+groupoption "sum"   - "総和"    group="type"
+groupoption "min"   - "最小値"  group="type"
+groupoption "max"   - "最大値"  group="type"
+groupoption "mean"  - "平均値"  group="type"
+groupoption "var"   - "分散"    group="type"
+groupoption "med"   - "中央値"  group="type"
 
