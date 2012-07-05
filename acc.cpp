@@ -8,7 +8,7 @@ namespace acc = boost::accumulators;
 
 
 template<class TValue, class TFeature>
-double accumulate()
+void accumulate()
 {
     acc::accumulator_set<TValue, acc::features<TFeature>> accumulator;
 
@@ -17,7 +17,7 @@ double accumulate()
     {
         accumulator(t);
     }
-    return static_cast<TValue>(acc::extract_result<TFeature>(accumulator));
+    std::cout << static_cast<TValue>(acc::extract_result<TFeature>(accumulator)) << std::endl;
 }
 
 
