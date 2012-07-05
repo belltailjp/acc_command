@@ -4,9 +4,11 @@
 
 namespace acc = boost::accumulators;
 
-int main(int argc, char* argv[])
+
+template<class T>
+double accumulate()
 {
-    acc::accumulator_set<double, acc::features<acc::tag::min>> accumulator;
+    acc::accumulator_set<double, acc::features<T>> accumulator;
 
     double t;
     while(!std::cin.eof())
@@ -14,6 +16,12 @@ int main(int argc, char* argv[])
         std::cin >> t;
         accumulator(t);
     }
-    std::cout << acc::extract::min(accumulator) << std::endl;
+    return acc::extract_result<T>(accumulator);
+}
+
+
+int main(int argc, char* argv[])
+{
+    std::cout << accumulate<acc::tag::max>() << std::endl;;
 }
 
