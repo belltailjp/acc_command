@@ -13,9 +13,8 @@ double accumulate()
     acc::accumulator_set<TValue, acc::features<TFeature>> accumulator;
 
     double t;
-    while(!std::cin.eof())
+    while(std::cin >> t, !std::cin.eof())
     {
-        std::cin >> t;
         accumulator(t);
     }
     return static_cast<TValue>(acc::extract_result<TFeature>(accumulator));
