@@ -2,6 +2,8 @@
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics.hpp>
 
+#include "cmdline.h"
+
 namespace acc = boost::accumulators;
 
 
@@ -22,6 +24,10 @@ double accumulate()
 
 int main(int argc, char* argv[])
 {
+    gengetopt_args_info arg;
+    if(cmdline_parser(argc, argv, &arg))
+        return -1;
+
     std::cout << accumulate<double, acc::tag::sum>() << std::endl;;
 }
 
