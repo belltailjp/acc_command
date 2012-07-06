@@ -2,7 +2,8 @@ package "acc"
 version "1.0"
 purpose "入力された数値列の各種統計量を計算する"
 
-option "integer" i "数値を全て整数で扱います(デフォルトは実数)" flag off
+#option "integer" i "数値を全て整数で扱います(デフォルトは実数)" flag off
+option "format" f "出力結果の書式指定文字列" string default="%f" no
 
 defgroup "type" groupdesc="どの統計量を求めるか" yes
 groupoption "sum"   - "総和"    group="type"

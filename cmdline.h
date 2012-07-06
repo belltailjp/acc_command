@@ -39,26 +39,25 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int integer_flag;	/**< @brief 数値を全て整数で扱います(デフォルトは実数) (default=off).  */
-  const char *integer_help; /**< @brief 数値を全て整数で扱います(デフォルトは実数) help description.  */
+  char * format_arg;	/**< @brief 出力結果の書式指定文字列 (default='%f').  */
+  char * format_orig;	/**< @brief 出力結果の書式指定文字列 original value given at command line.  */
+  const char *format_help; /**< @brief 出力結果の書式指定文字列 help description.  */
   const char *sum_help; /**< @brief 総和 help description.  */
   const char *min_help; /**< @brief 最小値 help description.  */
   const char *max_help; /**< @brief 最大値 help description.  */
   const char *mean_help; /**< @brief 平均値 help description.  */
   const char *var_help; /**< @brief 分散 help description.  */
   const char *med_help; /**< @brief 中央値 help description.  */
-  const char *mode_help; /**< @brief 最瀕値 help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
-  unsigned int integer_given ;	/**< @brief Whether integer was given.  */
+  unsigned int format_given ;	/**< @brief Whether format was given.  */
   unsigned int sum_given ;	/**< @brief Whether sum was given.  */
   unsigned int min_given ;	/**< @brief Whether min was given.  */
   unsigned int max_given ;	/**< @brief Whether max was given.  */
   unsigned int mean_given ;	/**< @brief Whether mean was given.  */
   unsigned int var_given ;	/**< @brief Whether var was given.  */
   unsigned int med_given ;	/**< @brief Whether med was given.  */
-  unsigned int mode_given ;	/**< @brief Whether mode was given.  */
 
   int type_group_counter; /**< @brief Counter for group type */
 } ;

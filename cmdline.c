@@ -32,22 +32,21 @@ const char *gengetopt_args_info_usage = "Usage: acc [OPTIONS]...";
 const char *gengetopt_args_info_description = "";
 
 const char *gengetopt_args_info_help[] = {
-  "  -h, --help     Print help and exit",
-  "  -V, --version  Print version and exit",
-  "  -i, --integer  数値を全て整数で扱います(デフォルトは実数) \n                    (default=off)",
+  "  -h, --help           Print help and exit",
+  "  -V, --version        Print version and exit",
+  "  -f, --format=STRING  出力結果の書式指定文字列  (default=`%f')",
   "\n Group: type\n  どの統計量を求めるか",
-  "      --sum      総和",
-  "      --min      最小値",
-  "      --max      最大値",
-  "      --mean     平均値",
-  "      --var      分散",
-  "      --med      中央値",
-  "      --mode     最瀕値",
+  "      --sum            総和",
+  "      --min            最小値",
+  "      --max            最大値",
+  "      --mean           平均値",
+  "      --var            分散",
+  "      --med            中央値",
     0
 };
 
 typedef enum {ARG_NO
-  , ARG_FLAG
+  , ARG_STRING
 } cmdline_parser_arg_type;
 
 static
@@ -70,14 +69,13 @@ void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
   args_info->version_given = 0 ;
-  args_info->integer_given = 0 ;
+  args_info->format_given = 0 ;
   args_info->sum_given = 0 ;
   args_info->min_given = 0 ;
   args_info->max_given = 0 ;
   args_info->mean_given = 0 ;
   args_info->var_given = 0 ;
   args_info->med_given = 0 ;
-  args_info->mode_given = 0 ;
   args_info->type_group_counter = 0 ;
 }
 
@@ -85,7 +83,8 @@ static
 void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
-  args_info->integer_flag = 0;
+  args_info->format_arg = gengetopt_strdup ("%f");
+  args_info->format_orig = NULL;
   
 }
 
@@ -96,14 +95,13 @@ void init_args_info(struct gengetopt_args_info *args_info)
 
   args_info->help_help = gengetopt_args_info_help[0] ;
   args_info->version_help = gengetopt_args_info_help[1] ;
-  args_info->integer_help = gengetopt_args_info_help[2] ;
+  args_info->format_help = gengetopt_args_info_help[2] ;
   args_info->sum_help = gengetopt_args_info_help[4] ;
   args_info->min_help = gengetopt_args_info_help[5] ;
   args_info->max_help = gengetopt_args_info_help[6] ;
   args_info->mean_help = gengetopt_args_info_help[7] ;
   args_info->var_help = gengetopt_args_info_help[8] ;
   args_info->med_help = gengetopt_args_info_help[9] ;
-  args_info->mode_help = gengetopt_args_info_help[10] ;
   
 }
 
@@ -184,6 +182,8 @@ static void
 cmdline_parser_release (struct gengetopt_args_info *args_info)
 {
 
+  free_string_field (&(args_info->format_arg));
+  free_string_field (&(args_info->format_orig));
   
   
 
@@ -218,8 +218,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
-  if (args_info->integer_given)
-    write_into_file(outfile, "integer", 0, 0 );
+  if (args_info->format_given)
+    write_into_file(outfile, "format", args_info->format_orig, 0);
   if (args_info->sum_given)
     write_into_file(outfile, "sum", 0, 0 );
   if (args_info->min_given)
@@ -232,8 +232,6 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "var", 0, 0 );
   if (args_info->med_given)
     write_into_file(outfile, "med", 0, 0 );
-  if (args_info->mode_given)
-    write_into_file(outfile, "mode", 0, 0 );
   
 
   i = EXIT_SUCCESS;
@@ -293,7 +291,6 @@ reset_group_type(struct gengetopt_args_info *args_info)
   args_info->mean_given = 0 ;
   args_info->var_given = 0 ;
   args_info->med_given = 0 ;
-  args_info->mode_given = 0 ;
 
   args_info->type_group_counter = 0;
 }
@@ -414,6 +411,7 @@ int update_arg(void *field, char **orig_field,
   char *stop_char = 0;
   const char *val = value;
   int found;
+  char **string_field;
   FIX_UNUSED (field);
 
   stop_char = 0;
@@ -444,8 +442,13 @@ int update_arg(void *field, char **orig_field,
     val = possible_values[found];
 
   switch(arg_type) {
-  case ARG_FLAG:
-    *((int *)field) = !*((int *)field);
+  case ARG_STRING:
+    if (val) {
+      string_field = (char **)field;
+      if (!no_free && *string_field)
+        free (*string_field); /* free previous string */
+      *string_field = gengetopt_strdup (val);
+    }
     break;
   default:
     break;
@@ -455,7 +458,6 @@ int update_arg(void *field, char **orig_field,
   /* store the original value */
   switch(arg_type) {
   case ARG_NO:
-  case ARG_FLAG:
     break;
   default:
     if (value && orig_field) {
@@ -512,18 +514,17 @@ cmdline_parser_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
-        { "integer",	0, NULL, 'i' },
+        { "format",	1, NULL, 'f' },
         { "sum",	0, NULL, 0 },
         { "min",	0, NULL, 0 },
         { "max",	0, NULL, 0 },
         { "mean",	0, NULL, 0 },
         { "var",	0, NULL, 0 },
         { "med",	0, NULL, 0 },
-        { "mode",	0, NULL, 0 },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVi", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVf:", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -539,12 +540,14 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 'i':	/* 数値を全て整数で扱います(デフォルトは実数).  */
+        case 'f':	/* 出力結果の書式指定文字列.  */
         
         
-          if (update_arg((void *)&(args_info->integer_flag), 0, &(args_info->integer_given),
-              &(local_args_info.integer_given), optarg, 0, 0, ARG_FLAG,
-              check_ambiguity, override, 1, 0, "integer", 'i',
+          if (update_arg( (void *)&(args_info->format_arg), 
+               &(args_info->format_orig), &(args_info->format_given),
+              &(local_args_info.format_given), optarg, 0, "%f", ARG_STRING,
+              check_ambiguity, override, 0, 0,
+              "format", 'f',
               additional_error))
             goto failure;
         
@@ -649,23 +652,6 @@ cmdline_parser_internal (
                 &(local_args_info.med_given), optarg, 0, 0, ARG_NO,
                 check_ambiguity, override, 0, 0,
                 "med", '-',
-                additional_error))
-              goto failure;
-          
-          }
-          /* 最瀕値.  */
-          else if (strcmp (long_options[option_index].name, "mode") == 0)
-          {
-          
-            if (args_info->type_group_counter && override)
-              reset_group_type (args_info);
-            args_info->type_group_counter += 1;
-          
-            if (update_arg( 0 , 
-                 0 , &(args_info->mode_given),
-                &(local_args_info.mode_given), optarg, 0, 0, ARG_NO,
-                check_ambiguity, override, 0, 0,
-                "mode", '-',
                 additional_error))
               goto failure;
           
